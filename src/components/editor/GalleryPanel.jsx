@@ -1,16 +1,21 @@
 import { useEffect, useState, useRef } from 'react'
 import { getGallery, uploadPhoto, deletePhoto, putGalleryOrder } from '../../api/mcards'
-import { SectionTitle, SaveBtn, Loader } from './ThemePanel'
+import { SectionTitle, Loader } from './ThemePanel'
 
 export default function GalleryPanel({ mcardId, onSaved }) {
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState(null)
   const fileRef = useRef()
+  const dragCounterRef = useRef(0)
 
   useEffect(() => {
     getGallery(mcardId)
-      .then((r) => setPhotos(r.data.datas || []))
+      .then((r) => {
+        const sorted = (r.data.datas || []).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+        setPhotos(sorted)
+      })
       .catch(() => setPhotos([]))
       .finally(() => setLoading(false))
   }, [mcardId])
@@ -37,13 +42,44 @@ export default function GalleryPanel({ mcardId, onSaved }) {
     } catch { alert('삭제 실패') }
   }
 
-  const saveOrder = async () => {
+  const saveOrder = async (newPhotos) => {
     try {
-      await putGalleryOrder(mcardId, {
-        photoIds: photos.map((p) => p.photoId),
-      })
+      const photoOrderItems = newPhotos.map((p, index) => ({
+        photoId: p.photoId,
+        displayOrder: index + 1,
+      }))
+      await putGalleryOrder(mcardId, photoOrderItems)
       onSaved?.('순서가 저장되었습니다.')
     } catch { alert('순서 저장 실패') }
+  }
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e, targetIndex) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+
+    if (draggedIndex === null || draggedIndex === targetIndex) return
+
+    const newPhotos = [...photos]
+    const draggedPhoto = newPhotos[draggedIndex]
+    newPhotos.splice(draggedIndex, 1)
+    newPhotos.splice(targetIndex, 0, draggedPhoto)
+    
+    setPhotos(newPhotos)
+    setDraggedIndex(targetIndex)
+  }
+
+  const handleDragEnd = async (e) => {
+    e.preventDefault()
+    if (draggedIndex !== null) {
+      setDraggedIndex(null)
+      // 순서 변경 후 자동으로 저장
+      await saveOrder(photos)
+    }
   }
 
   if (loading) return <Loader />
@@ -65,26 +101,32 @@ export default function GalleryPanel({ mcardId, onSaved }) {
 
       {/* 사진 그리드 */}
       {photos.length > 0 && (
-        <>
-          <div className="grid grid-cols-3 gap-2">
-            {photos.map((photo) => (
-              <div key={photo.photoId} className="relative group aspect-square">
-                <img
-                  src={photo.imageUrl || photo.publicUrl}
-                  alt=""
-                  className="w-full h-full object-cover rounded-lg"
-                />
-                <button
-                  onClick={() => handleDelete(photo.photoId)}
-                  className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-          <SaveBtn onClick={saveOrder} loading={false} />
-        </>
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map((photo, index) => (
+            <div
+              key={photo.photoId}
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`relative group aspect-square cursor-move transition-opacity ${
+                draggedIndex === index ? 'opacity-50' : 'opacity-100'
+              }`}
+            >
+              <img
+                src={photo.imageUrl || photo.publicUrl}
+                alt=""
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <button
+                onClick={() => handleDelete(photo.photoId)}
+                className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
       )}
 
       {photos.length === 0 && (

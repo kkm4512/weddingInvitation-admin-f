@@ -11,6 +11,7 @@ export const getPublicMcard = (inviteCode) => api.get(`/w/${inviteCode}`)
 
 // 섹션별 GET/PUT
 export const getTheme = (id) => api.get(`/mcards/${id}/theme`)
+export const getThemeById = (themeId) => api.get(`/themes/${themeId}`)
 export const putTheme = (id, data) => api.put(`/mcards/${id}/theme`, data)
 
 export const getIntro = (id) => api.get(`/mcards/${id}/intro`)
@@ -32,6 +33,7 @@ export const postTransport = (id, data) => api.post(`/mcards/${id}/venue/transpo
 export const putTransport = (id, tId, data) => api.put(`/mcards/${id}/venue/transports/${tId}`, data)
 export const deleteTransport = (id, tId) => api.delete(`/mcards/${id}/venue/transports/${tId}`)
 export const searchAddress = (query) => api.get(`/address/search?query=${encodeURIComponent(query)}`)
+export const getAddressMap = (lat, lng, width = 400, height = 300) => api.get(`/address/map?lat=${lat}&lng=${lng}&width=${width}&height=${height}`, { responseType: 'blob' })
 export const getMapImage = (lat, lng) => `/api/v1/address/map?lat=${lat}&lng=${lng}&width=400&height=300`
 
 export const getGallery = (id) => api.get(`/mcards/${id}/gallery`)
@@ -39,7 +41,7 @@ export const uploadPhoto = (id, file) => {
   const fd = new FormData(); fd.append('file', file)
   return api.post(`/mcards/${id}/gallery`, fd)
 }
-export const putGalleryOrder = (id, data) => api.put(`/mcards/${id}/gallery/order`, data)
+export const putGalleryOrder = (id, photos) => api.put(`/mcards/${id}/gallery/order`, { photos })
 export const deletePhoto = (id, photoId) => api.delete(`/mcards/${id}/gallery/${photoId}`)
 export const putGalleryLayout = (id, data) => api.put(`/mcards/${id}/gallery/layout`, data)
 
@@ -62,6 +64,8 @@ export const uploadBgm = (id, file) => {
 }
 export const getBgmSamples = () => api.get('/bgm/samples')
 
+export const getNoticeSamples = () => api.get('/notices/samples')
+
 export const getNotices = (id) => api.get(`/mcards/${id}/notices`)
 export const postNotice = (id, data) => api.post(`/mcards/${id}/notices`, data)
 export const putNotice = (id, nId, data) => api.put(`/mcards/${id}/notices/${nId}`, data)
@@ -71,6 +75,9 @@ export const getRsvpSettings = (id) => api.get(`/mcards/${id}/rsvp/settings`)
 export const putRsvpSettings = (id, data) => api.put(`/mcards/${id}/rsvp/settings`, data)
 export const getRsvpList = (id) => api.get(`/mcards/${id}/rsvp`)
 export const submitRsvp = (id, data) => api.post(`/mcards/${id}/rsvp`, data)
+
+export const getSectionOrder = (id) => api.get(`/mcards/${id}/section-order`)
+export const putSectionOrder = (id, data) => api.put(`/mcards/${id}/section-order`, data)
 
 export const getGuestbookSettings = (id) => api.get(`/mcards/${id}/guestbook/settings`)
 export const putGuestbookSettings = (id, data) => api.put(`/mcards/${id}/guestbook/settings`, data)
@@ -95,10 +102,14 @@ export const uploadPhotoQuoteImage = (id, file) => {
 export const getThumbnail = (id) => api.get(`/mcards/${id}/thumbnail`)
 export const putThumbnail = (id, data) => api.put(`/mcards/${id}/thumbnail`, data)
 
-export const getSectionOrder = (id) => api.get(`/mcards/${id}/sections/order`)
-export const putSectionOrder = (id, data) => api.put(`/mcards/${id}/sections/order`, data)
-
 export const getQrCode = (id) => `/api/v1/mcards/${id}/qrcode`
+
+export const uploadFile = (file) => {
+  const fd = new FormData(); fd.append('file', file)
+  return api.post('/files/upload', fd)
+}
+
+export const deleteFile = (fileUrl) => api.delete('/files', { data: { fileUrl } })
 
 export const getThemes = () => api.get('/themes')
 export const getIntros = () => api.get('/intros')

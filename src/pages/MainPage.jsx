@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMcards, createMcard, deleteMcard } from '../api/mcards'
+import { getMcards, createMcard, deleteMcard, putSectionOrder } from '../api/mcards'
 import { getMe } from '../api/auth'
 import useAuthStore from '../store/authStore'
+
+const DEFAULT_SECTION_ORDER = [
+  'theme', 'intro', 'couple', 'greeting', 'schedule', 'venue', 'gallery',
+  'contacts', 'accounts', 'video', 'bgm', 'notices', 'rsvp', 'guestbook', 'wreath', 'quote', 'photoQuote'
+]
 
 export default function MainPage() {
   const navigate = useNavigate()
@@ -34,6 +39,8 @@ export default function MainPage() {
     try {
       const res = await createMcard({ title })
       const newId = res.data.datas.mcardId
+      // 청첩장 생성 후 기본 section-order 저장
+      await putSectionOrder(newId, { sectionOrder: DEFAULT_SECTION_ORDER })
       navigate(`/editor/${newId}`)
     } catch {
       alert('청첩장 생성에 실패했습니다.')

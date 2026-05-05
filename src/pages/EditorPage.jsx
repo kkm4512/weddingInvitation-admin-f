@@ -95,7 +95,7 @@ export default function EditorPage() {
       {/* 본문: 네비 + 패널 + 미리보기 */}
       <div className="flex-1 flex overflow-hidden">
         {/* 좌측 섹션 네비 */}
-        <SectionNav active={activeSection} onChange={setActiveSection} />
+        <SectionNav mcardId={Number(mcardId)} active={activeSection} onChange={setActiveSection} />
 
         {/* 중앙 편집 패널 */}
         <div className="flex-1 overflow-y-auto bg-white">

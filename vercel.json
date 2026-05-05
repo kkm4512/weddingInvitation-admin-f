@@ -9,10 +9,6 @@
       "destination": "https://dev-weddinginvitation-b.onrender.com/health"
     },
     {
-      "source": "/w/:path*",
-      "destination": "https://dev-weddinginvitation-b.onrender.com/w/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
